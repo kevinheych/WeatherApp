@@ -1,15 +1,34 @@
 import tkinter as tk
 from tkinter import ttk
+from PIL import Image, ImageTk
 
 WIDTH = 700
 HEIGHT = 700
 PADDING = 3
 bg_color = 'white'
 
+
+def open_image(icon):
+     
+    img_large = ImageTk.PhotoImage(Image.open('./img/'+icon+'.png').resize((50, 50)))
+    weather_icon_lbl.delete("all")
+    weather_icon_lbl.create_image(0,0, anchor='nw', image=img_large)
+    weather_icon_lbl.image = img_large
+
+    img_small = ImageTk.PhotoImage(Image.open('./img/'+icon+'.png').resize((35, 35)))
+    daily_weather_icon.delete("all")
+    daily_weather_icon.create_image(0,0, anchor='nw', image=img_small)
+    daily_weather_icon.image = img_small
+
+
+
+
 root = tk.Tk()
 root.title("Weather Analysis App")
 style = ttk.Style(root)
 style.configure('lefttab.TNotebook', tabposition='wn')
+
+
 
 #The tab bar
 notebook = ttk.Notebook(root, style='lefttab.TNotebook', width = WIDTH, height = HEIGHT)
@@ -18,7 +37,7 @@ notebook.pack(fill = tk.BOTH, expand = True)
 
 
 #Make Forecast Tab
-forecast_tab = tk.Frame(notebook, bg='red')
+forecast_tab = tk.Frame(notebook, bg=bg_color)
 
 #sections
 overview_frame = tk.Frame(forecast_tab, bg='white', width = 200, height = 200)
@@ -34,7 +53,7 @@ overview_middle.grid(row = 1, padx=PADDING, pady=PADDING)
 overview_middle.grid_columnconfigure((0, 4), weight=1)
 
 
-weather_icon_lbl    = tk.Label(overview_middle, bg='black', width = 5 )
+weather_icon_lbl    = tk.Canvas(overview_middle, width = 50, height = 50 )
 temp_lbl            = tk.Label(overview_middle, text = "11°", font=(None, 50))
 c_button            = tk.Button(overview_middle, text = "C",font=(None, 15) )
 
@@ -71,28 +90,31 @@ last_updated_lbl.grid(row=4, padx=PADDING, pady=PADDING)
 
  
 
- 
-daily_frame = ttk.Labelframe(forecast_tab, text='Daily',height=150)
+#daily section
+daily_frame = ttk.Labelframe(forecast_tab, text='Daily')
 daily_frame.pack(fill= tk.BOTH, padx=PADDING, pady=PADDING)
-daily_frame.pack_propagate(False) 
+
 
 #daily item 1
-daily_item1 = tk.Frame(daily_frame, bg='yellow')
-daily_item1.pack(side = tk.LEFT, padx=PADDING, pady=PADDING)
+daily_item = tk.Frame(daily_frame, bg='yellow')
+daily_item.pack(side = tk.LEFT, padx=PADDING, pady=PADDING)
 
-label_a = tk.Label(daily_item1, text= 'Item1')
-label_a.pack()
-label_b = tk.Label(daily_item1, text= 'Item2')
-label_b.pack()
+daily_date_lbl = tk.Label(daily_item, text= 'Wed 9th', font=30)
+daily_weather_icon = tk.Canvas(daily_item, width=35, height = 35 )
+daily_temp_fr = tk.Frame(daily_item)
+daily_temp_high = tk.Label(daily_temp_fr, text="14°", font=(None,25))
+daily_temp_low = tk.Label(daily_temp_fr, text="7°")
+daily_weather_text = tk.Label(daily_item, text = "Cloudy")
 
-#daily item 1
-daily_item2 = tk.Frame(daily_frame, bg='blue')
-daily_item2.pack(side = tk.LEFT,fill= tk.Y, padx=PADDING, pady=PADDING)
 
-label_a = tk.Label(daily_item2, text= 'Item1')
-label_a.pack()
-label_b = tk.Label(daily_item2, text= 'Item2')
-label_b.pack()
+daily_date_lbl.pack(anchor = "w")
+daily_weather_icon.pack(anchor = "w")
+daily_temp_fr.pack(anchor = "w")
+daily_temp_high.pack(side= tk.LEFT, anchor = "sw")
+daily_temp_low.pack(side= tk.LEFT, anchor = "se", padx=PADDING, pady=PADDING)
+daily_weather_text.pack(side = tk.TOP,anchor = "w")
+
+#hourly section
 
 hourly_frame = ttk.Labelframe(forecast_tab, text='Hourly', height=150)
 hourly_frame.pack(fill= tk.X,padx=PADDING, pady=PADDING)
@@ -109,5 +131,5 @@ map_tab = tk.Frame(notebook, bg='blue')
 notebook.add(forecast_tab, text='Forecast')
 notebook.add(map_tab, text='Map')
 
-
+open_image('04d')
 root.mainloop()
