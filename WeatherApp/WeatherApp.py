@@ -11,7 +11,7 @@ PADDING = 3
 bg_color = 'white'
 
 # https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&exclude={part}&appid={YOUR API KEY}
-# apikey = 7350831d27d44e16e6a543a8f49dbf81
+
 
 
 def open_image(icon):
