@@ -28,6 +28,10 @@ class Model:
         response = requests.get(url, params=params)
         return response.json()
 
+    def get_weathertest(self):
+        with open('weatherjson_testdata.json') as json_file:
+            return json.load(json_file)
+
 
 
 

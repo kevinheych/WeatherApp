@@ -104,7 +104,8 @@ class View:
     def load_bg(self):
         img_height = 300
         now = datetime.datetime.now() 
-        if int((now.strftime('%H'))) >= 18 or int((now.strftime('%H'))) <= 7: 
+        print(now.strftime('%H'))
+        if int((now.strftime('%H'))) >= 18 or int((now.strftime('%H'))) <= 6: 
             img_file = Image.open('./img/night-bg.png')
             if img_file.size != (self.WIDTH, img_height):
                 img_file = img_file.resize((self.WIDTH, img_height), Image.ANTIALIAS)
@@ -160,15 +161,14 @@ class View:
 
     def open_image(self, icon):
     
-        self.img_large = ImageTk.PhotoImage(Image.open('./img/'+icon+'.png').resize((50, 50)))
-        self.weather_icon_lbl.delete("all")
-        self.weather_icon_lbl.create_image(0,0, anchor='nw', image=self.img_large)
-        self.weather_icon_lbl.image = self.img_large
-
-        self.img_small = ImageTk.PhotoImage(Image.open('./img/'+icon+'.png').resize((35, 35)))
-        self.daily_weather_icon.delete("all")
-        self.daily_weather_icon.create_image(0,0, anchor='nw', image=self.img_small)
-        self.daily_weather_icon.image = self.img_small
+        self.img_large = ImageTk.PhotoImage(Image.open('./img/'+icon+'.png').resize((70, 70)))
+        self.overview_canvas.delete(self.weather_icon_pic)
+        self.weather_icon_pic = self.overview_canvas.create_image(self.WIDTH//2-150, 250*0.25, anchor='nw',image=self.img_large)
+        
+        #self.img_small = ImageTk.PhotoImage(Image.open('./img/'+icon+'.png').resize((35, 35)))
+        #self.daily_weather_icon.delete("all")
+        #self.daily_weather_icon.create_image(0,0, anchor=tk.CENTER, image=self.img_small)
+        #self.daily_weather_icon.image = self.img_small
 
     def create_widgets1(self):
         #The tab bar
@@ -182,17 +182,53 @@ class View:
         self.notebook.add(self.map_tab, text='Map')
 
         #overview section
-        canvas_height = 300
+        canvas_height = 250
         canvas_width = self.WIDTH
-        self.overview_canvas = ResizingCanvas(self.forecast_tab,  height = canvas_height, bg = 'blue',highlightthickness=0)
+        self.overview_canvas = ResizingCanvas(self.forecast_tab,  height = canvas_height, bg = 'white',highlightthickness=0)
         self.overview_canvas.pack(fill = tk.X  )
         self.notebook.update() 
 
-         
-      
         self.overview_bg = self.overview_canvas.create_image(0,0, image = self.load_bg(), anchor='nw')
-        self.location_text = self.overview_canvas.create_text(canvas_width//2, 10, text='Location', fill = 'red', anchor=tk.CENTER)
+
+        self.location_text = self.overview_canvas.create_text(
+                                canvas_width//2, canvas_height*0.12, 
+                                text='Location', 
+                                fill = 'white', 
+                                font=(None, 15), 
+                                anchor=tk.CENTER)
+
+        self.weather_icon_pic =  self.overview_canvas.create_image(canvas_width//2-150, canvas_height*0.25, anchor='nw')
+        self.temp_lbl =  self.overview_canvas.create_text(
+                            canvas_width//2, canvas_height*0.35, 
+                            text='11°', fill = 'white', 
+                            font=(None, 55), 
+                            anchor=tk.CENTER)
+                            
+        self.c_button  = tk.Button(self.overview_canvas, text = "C",font=(None, 15) )
+        self.c_button_window = self.overview_canvas.create_window(
+                            canvas_width//2+100, canvas_height*0.25, 
+                            anchor='nw', 
+                            window= self.c_button)
         
+        self.weather_text_lbl = self.overview_canvas.create_text(
+                            canvas_width//2, canvas_height*0.6, 
+                            text='Clouds', 
+                            fill= 'white', font=(None, 15), 
+                            anchor=tk.CENTER)
+
+        overview_text = "Feels like 7°  Pressure 1021   Humidity 68% \nDew Point 13.2   Wind: 7.8km/h   Visibility 100%"
+        self.overview_info_text = self.overview_canvas.create_text(
+                            canvas_width//2, canvas_height*0.75, 
+                            text=overview_text, 
+                            fill = 'white', 
+                            anchor=tk.CENTER)
+
+        self.last_updated_lbl = self.overview_canvas.create_text(
+                            canvas_width//2, canvas_height*0.9, 
+                            text='Last updated: 10:10AM', 
+                            fill = 'green', font=(None, 8), 
+                            anchor=tk.CENTER)
+
         self.overview_canvas.bind("<Configure>", self.resize_window)
         self.overview_canvas.addtag_all("all")
         
@@ -208,7 +244,13 @@ class View:
         self.HEIGHT = event.height
          
         self.overview_canvas.itemconfig(self.overview_bg, image=self.load_bg())
-        self.overview_canvas.coords(self.location_text, self.WIDTH//2,10)
+        self.overview_canvas.coords(self.location_text, self.WIDTH//2,self.HEIGHT *0.12)
+        self.overview_canvas.coords(self.weather_icon_pic, self.WIDTH//2-150,self.HEIGHT*0.25)
+        self.overview_canvas.coords(self.temp_lbl, self.WIDTH//2,self.HEIGHT*0.35)
+        self.overview_canvas.coords(self.c_button_window, self.WIDTH//2+100,self.HEIGHT*0.25)
+        self.overview_canvas.coords(self.weather_text_lbl, self.WIDTH//2,self.HEIGHT*0.6)
+        self.overview_canvas.coords(self.overview_info_text, self.WIDTH//2,self.HEIGHT*0.75)
+        self.overview_canvas.coords(self.last_updated_lbl, self.WIDTH//2,self.HEIGHT*0.9)
     
         print("resize update")
 

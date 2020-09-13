@@ -27,7 +27,7 @@ class Controller:
         print(split[0], split[2]) 
 
         #request data 
-        weather_json = self.model.get_weather(location)
+        weather_json = self.model.get_weathertest()
 
         #json 
         current = weather_json['current']
@@ -38,7 +38,7 @@ class Controller:
 
         icon_name = current["weather"][0]['icon']
         weather_text = current["weather"][0]['main']
-        temp = current['temp']
+        temp = round(current['temp'],1)
         feels_like = current['feels_like']
         pressure = current['pressure']
         humidity = current['humidity']
@@ -46,21 +46,16 @@ class Controller:
         wind_speed = current['wind_speed']
         visibility = current['visibility']
 
+        overview_text = "Feels like "+ str(feels_like) + "    Pressure "+str(pressure) + "    Humidity "+str(humidity) + "\nDew Point "+ str(dew_point) + "    Wind speed "+str(wind_speed) + "    Visibility "+str(visibility)
+
         self.view.open_image(icon_name)
-
-        self.view.location_lbl.configure(text=split[0]+","+split[3])
-        self.view.temp_lbl.configure(text=temp)
-        self.view.weather_text_lbl.configure(text=weather_text)
-        self.view.feels_like_lbl.configure(text="Feels like "+str(feels_like))
-        self.view.pressure_lbl.configure(text="Pressure "+str(pressure))
-        self.view.humidity_lbl.configure(text="Humidity "+str(humidity))
-        self.view.dew_lbl.configure(text="Dew Point "+str(dew_point))
-        self.view.wind_lbl.configure(text="Wind speed "+str(wind_speed))
-        self.view.visibility_lbl.configure(text="Visibility "+str(visibility))
-        self.view.last_updated_lbl.configure(text="Last updated "+ str(current_time))
-   
-
-
+        self.view.overview_canvas.itemconfig(self.view.location_text, text=split[0]+","+split[3])
+        self.view.overview_canvas.itemconfig(self.view.temp_lbl, text= str(temp)+"°")
+        self.view.overview_canvas.itemconfig(self.view.weather_text_lbl, text= weather_text)
+        self.view.overview_canvas.itemconfig(self.view.overview_info_text, text= overview_text)
+        self.view.overview_canvas.itemconfig(self.view.last_updated_lbl, text= "Last updated "+ str(current_time))
+  
+ 
 
 
 if __name__ == "__main__":
