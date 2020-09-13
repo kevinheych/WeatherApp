@@ -21,7 +21,7 @@ class Controller:
         self.location = self.model.get_location(location)
 
     def update_weather(self, location):
-        #shorten address
+        #shorten address to Suburb, Postcode
         address = location.address
         split = address.split(",")
         print(split[0], split[2]) 
@@ -47,7 +47,8 @@ class Controller:
         visibility = current['visibility']
 
         overview_text = "Feels like "+ str(feels_like) + "    Pressure "+str(pressure) + "    Humidity "+str(humidity) + "\nDew Point "+ str(dew_point) + "    Wind speed "+str(wind_speed) + "    Visibility "+str(visibility)
-
+       
+        #update View 
         self.view.open_image(icon_name)
         self.view.overview_canvas.itemconfig(self.view.location_text, text=split[0]+","+split[3])
         self.view.overview_canvas.itemconfig(self.view.temp_lbl, text= str(temp)+"°")
