@@ -1,11 +1,13 @@
 import tkinter as tk
- 
+from model import Model
+import json
 from tkinter import ttk
 from PIL import Image, ImageTk
 import datetime
 from pandas import DataFrame
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,  
+NavigationToolbar2Tk) 
 
 
 class ResizingCanvas(tk.Canvas):
@@ -29,12 +31,20 @@ class ResizingCanvas(tk.Canvas):
 
 class View:
     background_image = 0
+    
 
     
 
     def __init__(self,parent):
         style = ttk.Style(parent)
         style.configure('lefttab.TNotebook', tabposition='wn')
+
+        #data test
+        self.model = Model()
+        self.weather_json = self.model.get_weathertest()
+        self.i = tk.IntVar()
+        self.i.set(0)
+        
 
         self.container = parent
         self.WIDTH = 700
@@ -45,7 +55,7 @@ class View:
 
     def setup(self):
         self.create_widgets()
-        self.setup_layout()
+        self.load_daily_detail()
 
  
     def open_image(self, icon):
@@ -54,10 +64,7 @@ class View:
         self.overview_canvas.delete(self.weather_icon_pic)
         self.weather_icon_pic = self.overview_canvas.create_image(self.WIDTH//2-150, 250*0.25, anchor='nw',image=self.img_large)
         
-        #self.img_small = ImageTk.PhotoImage(Image.open('./img/'+icon+'.png').resize((35, 35)))
-        #self.daily_weather_icon.delete("all")
-        #self.daily_weather_icon.create_image(0,0, anchor=tk.CENTER, image=self.img_small)
-        #self.daily_weather_icon.image = self.img_small
+        
 
     def create_widgets(self):
         #The tab bar
@@ -73,15 +80,16 @@ class View:
         #overview section
         canvas_height = 250
         canvas_width = self.WIDTH
+        current = self.weather_json['current'] 
         self.overview_canvas = ResizingCanvas(self.forecast_tab,  height = canvas_height, bg = 'white',highlightthickness=0)
-        self.overview_canvas.pack(fill = tk.X  )
+        self.overview_canvas.pack(fill = tk.X)
         self.notebook.update() 
 
-        self.overview_bg = self.overview_canvas.create_image(0,0, image = self.load_bg(), anchor='nw')
+        self.overview_bg = self.overview_canvas.create_image(canvas_width/2,canvas_height/2, image = self.load_bg())
 
         self.location_text = self.overview_canvas.create_text(
                                 canvas_width//2, canvas_height*0.12, 
-                                text='Location', 
+                                text='Melbourne, ', 
                                 fill = 'white', 
                                 font=(None, 15), 
                                 anchor=tk.CENTER)
@@ -125,56 +133,122 @@ class View:
         
     
         #daily section
-        self.scroll_canvas = tk.Canvas(self.forecast_tab, height= 130)
+        self.scroll_canvas = tk.Canvas(self.forecast_tab, height= 135, width = 900)
         
 
         self.scrollbar_daily = tk.Scrollbar(self.forecast_tab, orient = 'horizontal', command=self.scroll_canvas.xview)
         
-        self.daily_frame = tk.Frame(self.scroll_canvas, bg = 'green')
+        self.daily_frame = tk.Frame(self.scroll_canvas)
         #daily item 
-        for x in range(8):
+        for index, day in enumerate(self.weather_json['daily']):
+            
+            date = datetime.datetime.fromtimestamp(day['dt'])
+            temp = day['temp']
+            #create daily item
             self.daily_item = tk.Frame(self.daily_frame)
+ 
             self.daily_date_lbl = tk.Label(self.daily_item, 
-                                text= 'Wed '+ str(x+1) +'th', 
+                                text= date.strftime("%a %d"), 
                                 font=30, width = 10)
-            self.daily_weather_icon = tk.Canvas(self.daily_item, width=35, height = 35 )
+            self.daily_weather_icon = tk.Canvas(self.daily_item, width=35, height = 40 )
             self.daily_temp_fr = tk.Frame(self.daily_item)
-            self.daily_temp_high = tk.Label(self.daily_temp_fr, text="14°", font=(None,25))
-            self.daily_temp_low = tk.Label(self.daily_temp_fr, text="7°")
-            self.daily_weather_text = tk.Label(self.daily_item, text = "Cloudy")
+            self.daily_temp_high = tk.Label(self.daily_temp_fr, text=str(round(temp['max']))+"°", font=(None,20))
+            self.daily_temp_low = tk.Label(self.daily_temp_fr, text=str(round(temp['min']))+"°",font=(None,16), foreground ='grey')
+            self.daily_weather_text = tk.Label(self.daily_item, text = day['weather'][0]['main'] )
 
+            #load daily item widgets
             
             self.daily_item.pack(side = tk.LEFT, padx=self.PADDING, pady=self.PADDING)
             self.daily_date_lbl.pack(anchor = "w")
-            self.daily_weather_icon.pack(anchor = "w")
+            self.daily_weather_icon.pack(fill = tk.X)
             self.daily_temp_fr.pack(anchor = "w")
-            self.daily_temp_high.pack(side= tk.LEFT, anchor = "sw")
-            self.daily_temp_low.pack(side= tk.LEFT, anchor = "se", padx=self.PADDING, pady=self.PADDING)
-            self.daily_weather_text.pack(side = tk.TOP,anchor = "w")
+            self.daily_temp_high.pack(side= tk.LEFT, anchor = "s", padx=self.PADDING+4)
+            self.daily_temp_low.pack(side= tk.LEFT, anchor = "sw",padx=self.PADDING, pady=self.PADDING)
+            self.daily_weather_text.pack(side = tk.LEFT , padx=self.PADDING+4,pady=self.PADDING)
+            #load icon
+            self.img_small = ImageTk.PhotoImage(Image.open('./img/'+day["weather"][0]['icon']+'.png').resize((50, 50)))
+            self.daily_weather_icon.delete("all")
+            self.daily_weather_icon.create_image(30,0, anchor="nw", image=self.img_small)
+            self.daily_weather_icon.image = self.img_small
+
+            #radio button
+            self.radiobutton = tk.Radiobutton(self.daily_item, value =index, variable = self.i, command=self.RadioBtnSelected)
+            self.radiobutton.pack()
+            self.i.set(0)
 
         self.scroll_canvas.create_window(0, 0, anchor='nw', window=self.daily_frame)
         self.scroll_canvas.update_idletasks()
         self.scroll_canvas.configure(scrollregion=self.scroll_canvas.bbox('all'), xscrollcommand=self.scrollbar_daily.set)
-
-        self.scroll_canvas.pack(fill= tk.X, padx=self.PADDING, pady=self.PADDING)
         self.scrollbar_daily.pack(fill=tk.X, side=tk.TOP)
+        self.scroll_canvas.pack( padx=self.PADDING, pady=self.PADDING)
+
+        #daily detail 
+
+        self.daily_detail_frame = tk.Frame(self.forecast_tab, width= self.WIDTH+200,height = 200)
+        self.daily_detail_frame.pack_propagate(False)
+        self.daily_detail_frame.pack(side = tk.TOP)
+        print(self.weather_json['daily'][0])
+        
+        
+        
 
 
         #hourly section
 
+        
         self.hourly_canvas = tk.Canvas(self.forecast_tab)
-        
 
+
+    def RadioBtnSelected(self):
+        print(json.dumps(self.i.get()))
+        self.update_daily_detail()
          
-    def setup_layout(self):
-        return
+
+    
+    def load_daily_detail(self):
+        graphData = self.weather_json['daily'][self.i.get()]['temp']
+        x = ['Morning','Day','Evening','Night']
+        y = [graphData['morn'],graphData['day'],graphData['eve'],graphData['night']]
+        # the figure that will contain the plot 
+        self.daily_figure = plt.Figure(figsize=(6,5), dpi=100, constrained_layout=True)
+        # adding the subplot 
+        self.ax = self.daily_figure.add_subplot(111)
+        # plotting the graph 
+        
+        self.ax.set_title('Hourly')
+        self.line, = self.ax.plot(x,y,'b-') 
+        self.ax.set_ylim( min(y)-3,max(y)+3)
+
+        self.line_fig  = FigureCanvasTkAgg(self.daily_figure, self.daily_detail_frame)
+        self.line_fig.get_tk_widget().pack(fill = tk.X)
+        self.line_fig.draw()
+
+
+
 
         
+
+
+    def update_daily_detail(self):
+       
+        print(self.weather_json['daily'][self.i.get()])
+        graphData = self.weather_json['daily'][self.i.get()]['temp']
+        y = [graphData['morn'],graphData['day'],graphData['eve'],graphData['night']]
+        self.line.set_ydata(y)
+        self.ax.set_ylim( min(y)-3,max(y)+3)
+        self.daily_figure.canvas.draw()
+        self.daily_figure.canvas.flush_events()
+        
+        
+
+       
+
     def resize_window(self, event):
         self.WIDTH = event.width
         self.HEIGHT = event.height
          
-        self.overview_canvas.itemconfig(self.overview_bg, image=self.load_bg())
+        
+        self.overview_canvas.coords(self.overview_bg, self.WIDTH/2,self.HEIGHT/2)
         self.overview_canvas.coords(self.location_text, self.WIDTH//2,self.HEIGHT *0.12)
         self.overview_canvas.coords(self.weather_icon_pic, self.WIDTH//2-150,self.HEIGHT*0.25)
         self.overview_canvas.coords(self.temp_lbl, self.WIDTH//2,self.HEIGHT*0.35)
@@ -188,11 +262,12 @@ class View:
     def load_bg(self):
         img_height = 300
         now = datetime.datetime.now() 
+         
         print(now.strftime('%H'))
         if int((now.strftime('%H'))) >= 18 or int((now.strftime('%H'))) <= 6: 
             img_file = Image.open('./img/night-bg.png')
             if img_file.size != (self.WIDTH, img_height):
-                img_file = img_file.resize((self.WIDTH, img_height), Image.ANTIALIAS)
+                img_file = img_file.resize((2000, img_height+50), Image.ANTIALIAS)
             self.background_image = ImageTk.PhotoImage(img_file)
             print("night", img_file.size)
             
@@ -200,7 +275,7 @@ class View:
         else: 
             img_file = Image.open('./img/day-bg.png')
             if img_file.size != (self.WIDTH, img_height):
-                img_file = img_file.resize((self.WIDTH, img_height), Image.ANTIALIAS)
+                img_file = img_file.resize((2000, img_height+150), Image.ANTIALIAS)
             self.background_image = ImageTk.PhotoImage(img_file)
             print("day")
             return self.background_image
@@ -215,6 +290,7 @@ if __name__ == "__main__":
     WIDTH = 700
     HEIGHT = 700
     root.geometry("%sx%s" % (WIDTH, HEIGHT))
+    
 
 
     view = View(root)
