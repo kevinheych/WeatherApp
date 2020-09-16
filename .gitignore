@@ -1,2 +1,6 @@
 WeatherApp/tempCodeRunnerFile.py
 WeatherApp/.vscode/.ropeproject/config.py
+WeatherApp/.vscode/.ropeproject/objectdb
+WeatherApp/__pycache__/model.cpython-38.pyc
+WeatherApp/__pycache__/view.cpython-38.pyc
+WeatherApp/test.py
