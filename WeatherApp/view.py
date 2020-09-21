@@ -4,8 +4,11 @@ import json
 from tkinter import ttk
 from PIL import Image, ImageTk
 import datetime
+import pandas as pd
+import numpy as np
 from pandas import DataFrame
 import matplotlib.pyplot as plt
+import matplotlib.ticker as plticker
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,  
 NavigationToolbar2Tk) 
 
@@ -31,9 +34,6 @@ class ResizingCanvas(tk.Canvas):
 
 class View:
     background_image = 0
-    
-
-    
 
     def __init__(self,parent):
         style = ttk.Style(parent)
@@ -48,25 +48,25 @@ class View:
 
         self.container = parent
         self.WIDTH = 700
-        self.HEIGHT = 700
+        self.HEIGHT = 1000
         self.PADDING = 3
         self.bg_color = 'white'
         return
 
     def setup(self):
-        self.create_widgets()
+        self.tab_bar()
+
+        self.overview_section()
+        #self.next_48hrs()
+        self.daily_section()
         self.load_daily_detail()
+         
 
  
-    def open_image(self, icon):
-    
-        self.img_large = ImageTk.PhotoImage(Image.open('./img/'+icon+'.png').resize((70, 70)))
-        self.overview_canvas.delete(self.weather_icon_pic)
-        self.weather_icon_pic = self.overview_canvas.create_image(self.WIDTH//2-150, 250*0.25, anchor='nw',image=self.img_large)
-        
-        
+ 
+## GUI 
 
-    def create_widgets(self):
+    def tab_bar(self):  
         #The tab bar
         self.notebook = ttk.Notebook(self.container, style='lefttab.TNotebook', width = self.WIDTH, height = self.HEIGHT)
         self.notebook.place(x=0, y=0, relwidth=1, relheight=1)
@@ -77,6 +77,7 @@ class View:
         self.notebook.add(self.forecast_tab, text='Forecast')
         self.notebook.add(self.map_tab, text='Map')
 
+    def overview_section(self):
         #overview section
         canvas_height = 250
         canvas_width = self.WIDTH
@@ -129,18 +130,34 @@ class View:
         self.overview_canvas.bind("<Configure>", self.resize_window)
         self.overview_canvas.addtag_all("all")
 
-
+    def daily_section(self):
         
-    
-        #daily section
+         #daily section
         self.scroll_canvas = tk.Canvas(self.forecast_tab, height= 135, width = 900)
-        
-
         self.scrollbar_daily = tk.Scrollbar(self.forecast_tab, orient = 'horizontal', command=self.scroll_canvas.xview)
         
         self.daily_frame = tk.Frame(self.scroll_canvas)
-        #daily item 
-        for index, day in enumerate(self.weather_json['daily']):
+
+       
+        self.load_daily_items()
+
+        self.scroll_canvas.create_window(0, 0, anchor='nw', window=self.daily_frame)
+        self.scroll_canvas.update_idletasks()
+        self.scroll_canvas.configure(scrollregion=self.scroll_canvas.bbox('all'), xscrollcommand=self.scrollbar_daily.set)
+        self.scrollbar_daily.pack(fill=tk.X, side=tk.TOP)
+        self.scroll_canvas.pack( padx=self.PADDING, pady=self.PADDING)
+
+        #daily detail 
+
+        self.daily_detail_frame = tk.Frame(self.forecast_tab, width= self.WIDTH+200,height = 200)
+        self.daily_detail_frame.pack_propagate(False)
+        self.daily_detail_frame.pack(side = tk.TOP)
+        print(self.weather_json['daily'][0])
+        
+    def load_daily_items(self):
+         #daily item 
+        daily=  self.weather_json['daily']
+        for index, day in enumerate(daily):
             
             date = datetime.datetime.fromtimestamp(day['dt'])
             temp = day['temp']
@@ -155,9 +172,8 @@ class View:
             self.daily_temp_high = tk.Label(self.daily_temp_fr, text=str(round(temp['max']))+"°", font=(None,20))
             self.daily_temp_low = tk.Label(self.daily_temp_fr, text=str(round(temp['min']))+"°",font=(None,16), foreground ='grey')
             self.daily_weather_text = tk.Label(self.daily_item, text = day['weather'][0]['main'] )
-
-            #load daily item widgets
             
+            #load daily item widgets
             self.daily_item.pack(side = tk.LEFT, padx=self.PADDING, pady=self.PADDING)
             self.daily_date_lbl.pack(anchor = "w")
             self.daily_weather_icon.pack(fill = tk.X)
@@ -175,59 +191,64 @@ class View:
             self.radiobutton = tk.Radiobutton(self.daily_item, value =index, variable = self.i, command=self.RadioBtnSelected)
             self.radiobutton.pack()
             self.i.set(0)
+    
+    def next_48hrs(self):
+        
+        self.hourly_frame = tk.Frame(self.forecast_tab)
+        self.hourly_frame.pack()
 
-        self.scroll_canvas.create_window(0, 0, anchor='nw', window=self.daily_frame)
-        self.scroll_canvas.update_idletasks()
-        self.scroll_canvas.configure(scrollregion=self.scroll_canvas.bbox('all'), xscrollcommand=self.scrollbar_daily.set)
-        self.scrollbar_daily.pack(fill=tk.X, side=tk.TOP)
-        self.scroll_canvas.pack( padx=self.PADDING, pady=self.PADDING)
 
-        #daily detail 
+        graphData = self.weather_json['hourly']
+        hours = [i['dt'] for i in graphData]
+        x_hours = pd.to_datetime(hours, unit = 's').strftime("%I%p %a")
+        print(x_hours)
+        x_incre = list(range(0, 48))
 
-        self.daily_detail_frame = tk.Frame(self.forecast_tab, width= self.WIDTH+200,height = 200)
-        self.daily_detail_frame.pack_propagate(False)
-        self.daily_detail_frame.pack(side = tk.TOP)
-        print(self.weather_json['daily'][0])
+        y_temp = [i['temp'] for i in graphData]
+        y_precipitation = [i['pop'] for i in graphData]
+        y_windspeed = [i['wind_speed'] for i in graphData]
+        print(y_temp)
+        self.hourly_fig = plt.Figure( figsize=(20,3))
         
         
+
+        self.ax = self.hourly_fig.add_subplot(111)
+       
         
+        self.ax.set_title('Next 48 hours')
+        self.ax.tick_params(  labelsize=7)
+        self.line, = self.ax.plot(x_hours,y_temp,'b-') 
+        #self.ax.set_xticklabels(x_hours)
+        loc = plticker.MultipleLocator(base=1)
+        self.ax.xaxis.set_major_locator(loc)
 
-
-        #hourly section
-
+        self.ax.set_ylim( min(y_temp)-3,max(y_temp)+3)
+        self.ax.set_xlim(0,48)
         
-        self.hourly_canvas = tk.Canvas(self.forecast_tab)
-
-
-    def RadioBtnSelected(self):
-        print(json.dumps(self.i.get()))
-        self.update_daily_detail()
-         
-
+        plt.setp(self.ax.get_xticklabels(), rotation=-50, horizontalalignment='left',rotation_mode="anchor")
+        self.hourly_fig.subplots_adjust(bottom=0.2)
+        self.line_fig  = FigureCanvasTkAgg(self.hourly_fig, self.hourly_frame)
+        self.line_fig.get_tk_widget().pack()
+        self.line_fig.draw()    
     
     def load_daily_detail(self):
+        
         graphData = self.weather_json['daily'][self.i.get()]['temp']
         x = ['Morning','Day','Evening','Night']
         y = [graphData['morn'],graphData['day'],graphData['eve'],graphData['night']]
         # the figure that will contain the plot 
-        self.daily_figure = plt.Figure(figsize=(6,5), dpi=100, constrained_layout=True)
+        self.hourly_fig = plt.Figure(figsize=(6,5), dpi=100, constrained_layout=True)
         # adding the subplot 
-        self.ax = self.daily_figure.add_subplot(111)
+        self.ax = self.hourly_fig.add_subplot(111)
         # plotting the graph 
         
-        self.ax.set_title('Hourly')
+        self.ax.set_title('Day')
         self.line, = self.ax.plot(x,y,'b-') 
         self.ax.set_ylim( min(y)-3,max(y)+3)
 
-        self.line_fig  = FigureCanvasTkAgg(self.daily_figure, self.daily_detail_frame)
+        self.line_fig  = FigureCanvasTkAgg(self.hourly_fig, self.daily_detail_frame)
         self.line_fig.get_tk_widget().pack(fill = tk.X)
         self.line_fig.draw()
-
-
-
-
-        
-
 
     def update_daily_detail(self):
        
@@ -236,12 +257,13 @@ class View:
         y = [graphData['morn'],graphData['day'],graphData['eve'],graphData['night']]
         self.line.set_ydata(y)
         self.ax.set_ylim( min(y)-3,max(y)+3)
-        self.daily_figure.canvas.draw()
-        self.daily_figure.canvas.flush_events()
-        
+        self.hourly_fig.canvas.draw()
+        self.hourly_fig.canvas.flush_events()
+
+        ###TO DO: add the rest of the info 
         
 
-       
+## Misc Functions
 
     def resize_window(self, event):
         self.WIDTH = event.width
@@ -256,8 +278,10 @@ class View:
         self.overview_canvas.coords(self.weather_text_lbl, self.WIDTH//2,self.HEIGHT*0.6)
         self.overview_canvas.coords(self.overview_info_text, self.WIDTH//2,self.HEIGHT*0.75)
         self.overview_canvas.coords(self.last_updated_lbl, self.WIDTH//2,self.HEIGHT*0.9)
-    
-        print("resize update")
+
+    def RadioBtnSelected(self):
+        print(json.dumps(self.i.get()))
+        self.update_daily_detail()
 
     def load_bg(self):
         img_height = 300
@@ -280,6 +304,12 @@ class View:
             print("day")
             return self.background_image
      
+    def open_image(self, icon):
+    
+        self.img_large = ImageTk.PhotoImage(Image.open('./img/'+icon+'.png').resize((70, 70)))
+        self.overview_canvas.delete(self.weather_icon_pic)
+        self.weather_icon_pic = self.overview_canvas.create_image(self.WIDTH//2-150, 250*0.25, anchor='nw',image=self.img_large)
+   
 
   
         
