@@ -1,5 +1,7 @@
 import tkinter as tk
 from model import Model
+from map import Map
+ 
 import json
 from tkinter import ttk
 from PIL import Image, ImageTk
@@ -56,10 +58,18 @@ class View:
     def setup(self):
         self.tab_bar()
 
+        #Forecast sections
+        self.header_bar()
+
         self.overview_section()
-        #self.next_48hrs()
+        self.next_48hrs()
         self.daily_section()
         self.load_daily_detail()
+
+        #Map section
+        self.load_map_section()
+
+
          
 
  
@@ -77,6 +87,41 @@ class View:
         self.notebook.add(self.forecast_tab, text='Forecast')
         self.notebook.add(self.map_tab, text='Map')
 
+
+    def load_map_section(self):
+        self.map = Map()
+        self.map_frame = tk.Frame(self.map_tab, bg= 'blue')
+        self.map_frame.pack()
+
+        self.map_fig = plt.Figure()
+        
+
+        self.map_ax = self.map.map(self.map_fig)
+        self.map_fig  = FigureCanvasTkAgg(self.map_fig, self.map_frame)
+        self.map_fig.get_tk_widget().pack(fill = tk.X)
+        self.map_fig.draw()
+
+
+
+
+    def header_bar(self):
+        img = Image.open("./img/search_icon.png")
+        img = img.resize((20,20), Image.ANTIALIAS)
+
+        self.btn_icon = ImageTk.PhotoImage(img)
+        #self.img_small = ImageTk.PhotoImage(Image.open('./img/'+day["weather"][0]['icon']+'.png').resize((50, 50)))
+
+        self.header_frame = tk.Frame(self.forecast_tab)
+
+        self.search_box = tk.Entry(self.header_frame)
+        self.search_btn = tk.Button(self.header_frame, image = self.btn_icon)
+
+        self.header_frame.pack(fill = tk.X)
+        self.search_btn.pack(side = tk.RIGHT)
+        self.search_box.pack(side = tk.RIGHT)
+        
+
+
     def overview_section(self):
         #overview section
         canvas_height = 250
@@ -90,7 +135,7 @@ class View:
 
         self.location_text = self.overview_canvas.create_text(
                                 canvas_width//2, canvas_height*0.12, 
-                                text='Melbourne, ', 
+                                text='', 
                                 fill = 'white', 
                                 font=(None, 15), 
                                 anchor=tk.CENTER)
@@ -98,7 +143,7 @@ class View:
         self.weather_icon_pic =  self.overview_canvas.create_image(canvas_width//2-150, canvas_height*0.25, anchor='nw')
         self.temp_lbl =  self.overview_canvas.create_text(
                             canvas_width//2, canvas_height*0.35, 
-                            text='11°', fill = 'white', 
+                            text='', fill = 'white', 
                             font=(None, 55), 
                             anchor=tk.CENTER)
                             
@@ -110,7 +155,7 @@ class View:
         
         self.weather_text_lbl = self.overview_canvas.create_text(
                             canvas_width//2, canvas_height*0.6, 
-                            text='Clouds', 
+                            text='', 
                             fill= 'white', font=(None, 15), 
                             anchor=tk.CENTER)
 
@@ -233,17 +278,20 @@ class View:
     
     def load_daily_detail(self):
         
+        # set data for plot
         graphData = self.weather_json['daily'][self.i.get()]['temp']
         x = ['Morning','Day','Evening','Night']
         y = [graphData['morn'],graphData['day'],graphData['eve'],graphData['night']]
+
         # the figure that will contain the plot 
         self.hourly_fig = plt.Figure(figsize=(6,5), dpi=100, constrained_layout=True)
+
         # adding the subplot 
         self.ax = self.hourly_fig.add_subplot(111)
+
         # plotting the graph 
-        
         self.ax.set_title('Day')
-        self.line, = self.ax.plot(x,y,'b-') 
+        self.line, = self.ax.plot(x,y,'black') 
         self.ax.set_ylim( min(y)-3,max(y)+3)
 
         self.line_fig  = FigureCanvasTkAgg(self.hourly_fig, self.daily_detail_frame)
@@ -310,7 +358,10 @@ class View:
         self.overview_canvas.delete(self.weather_icon_pic)
         self.weather_icon_pic = self.overview_canvas.create_image(self.WIDTH//2-150, 250*0.25, anchor='nw',image=self.img_large)
    
-
+    def get_location(self):
+        self.location = self.search_box.get()
+        self.search_box.delete(0,'end')
+        print(self.location)
   
         
 

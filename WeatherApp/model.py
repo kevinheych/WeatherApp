@@ -1,4 +1,5 @@
-import requests, json
+import requests
+import json
 from geopy.geocoders import Nominatim
 
 
@@ -15,7 +16,7 @@ class Model:
         loc = geolocator.geocode(location)
         return loc
         
-    def get_weather(self, location):
+    def get_weather_c(self, location):
         weather_key = "7350831d27d44e16e6a543a8f49dbf81"
        
         url = 'https://api.openweathermap.org/data/2.5/onecall'
@@ -23,6 +24,19 @@ class Model:
             'lat': location.latitude, 
             'lon': location.longitude, 
             'units' : 'metric',
+             }
+
+        response = requests.get(url, params=params)
+        return response.json()
+
+    def get_weather_f(self, location):
+        weather_key = "7350831d27d44e16e6a543a8f49dbf81"
+       
+        url = 'https://api.openweathermap.org/data/2.5/onecall'
+        params = {'appid':  weather_key, 
+            'lat': location.latitude, 
+            'lon': location.longitude, 
+            'units' : 'imperial',
              }
 
         response = requests.get(url, params=params)
