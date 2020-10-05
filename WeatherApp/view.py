@@ -40,6 +40,7 @@ class View:
     def __init__(self,parent):
         style = ttk.Style(parent)
         style.configure('lefttab.TNotebook', tabposition='wn')
+        style.configure('lefttab.TNotebook.Tab', padding=[12, 12])
 
         #data test
         self.model = Model()
@@ -79,6 +80,8 @@ class View:
 ## GUI 
 
     def tab_bar(self):  
+        tab_width = 80
+        tab_height= 80
         #The tab bar
         self.notebook = ttk.Notebook(self.container, style='lefttab.TNotebook', width = self.WIDTH, height = self.HEIGHT)
         self.notebook.place(x=0, y=0, relwidth=1, relheight=1)
@@ -96,11 +99,12 @@ class View:
         #change layers
         #add radiobutton
         LAYERS = [
+            ("Temperature","temp_new"),
             ("Clouds","clouds_new"),
             ("Precipitation","precipitation_new"),
             ("Sea level pressure","pressure_new"),
             ("Wind speed","wind_new"),
-            ("Temperature","temp_new"),
+            
         ]
 
         self.layer_btn_frame = tk.Frame(self.map_tab)
