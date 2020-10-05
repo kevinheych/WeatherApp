@@ -46,6 +46,8 @@ class View:
         self.weather_json = self.model.get_weathertest()
         self.i = tk.IntVar()
         self.i.set(0)
+        self.layer_i = tk.StringVar()
+        self.layer_i.set("temp_new")
         
 
         self.container = parent
@@ -53,7 +55,7 @@ class View:
         self.HEIGHT = 1000
         self.PADDING = 3
         self.bg_color = 'white'
-        return
+        
 
     def setup(self):
         self.tab_bar()
@@ -90,18 +92,39 @@ class View:
 
     def load_map_section(self):
         self.map = Map()
-        self.map_frame = tk.Frame(self.map_tab, bg= 'blue')
-        self.map_frame.pack()
 
-        self.map_fig = plt.Figure()
+        #change layers
+        #add radiobutton
+        LAYERS = [
+            ("Clouds","clouds_new"),
+            ("Precipitation","precipitation_new"),
+            ("Sea level pressure","pressure_new"),
+            ("Wind speed","wind_new"),
+            ("Temperature","temp_new"),
+        ]
+
+        self.layer_btn_frame = tk.Frame(self.map_tab)
+        self.layer_btn_frame.pack(side=tk.BOTTOM)
+        for text, layer in LAYERS:
+            self.btn = tk.Radiobutton(self.layer_btn_frame, text= text, variable=self.layer_i,value=layer, command = self.map_RadioBtnSelected) 
+            self.btn.pack(side=tk.LEFT)
         
-
-        self.map_ax = self.map.map(self.map_fig,"clouds_new")
-        self.map_fig  = FigureCanvasTkAgg(self.map_fig, self.map_frame)
-        self.map_fig.get_tk_widget().pack(fill = tk.X)
-        self.map_fig.draw()
+        #map fig
+        self.load_mapfig()
 
 
+    def load_mapfig(self):
+        self.map_canvas = tk.Canvas(self.map_tab, bg= 'blue')
+        self.map_canvas.pack(side=tk.BOTTOM, expand = True)
+        self.map_fig = plt.Figure()
+        self.map_ax = self.map.map(self.map_fig, self.layer_i.get())
+        self.map_widget  = FigureCanvasTkAgg(self.map_fig, self.map_canvas)
+        self.map_widget.get_tk_widget().pack(fill = tk.X)
+        self.map_widget.draw()
+
+    def map_RadioBtnSelected(self):
+        self.map_canvas.destroy()
+        self.load_mapfig()
 
 
     def header_bar(self):
@@ -120,8 +143,6 @@ class View:
         self.search_btn.pack(side = tk.RIGHT)
         self.search_box.pack(side = tk.RIGHT)
         
-
-
     def overview_section(self):
         #overview section
         canvas_height = 250
@@ -233,7 +254,7 @@ class View:
             self.daily_weather_icon.image = self.img_small
 
             #radio button
-            self.radiobutton = tk.Radiobutton(self.daily_item, value =index, variable = self.i, command=self.RadioBtnSelected)
+            self.radiobutton = tk.Radiobutton(self.daily_item, value =index, variable = self.i, command=self.Daily_RadioBtnSelected)
             self.radiobutton.pack()
             self.i.set(0)
     
@@ -303,8 +324,12 @@ class View:
         print(self.weather_json['daily'][self.i.get()])
         graphData = self.weather_json['daily'][self.i.get()]['temp']
         y = [graphData['morn'],graphData['day'],graphData['eve'],graphData['night']]
+
+        #update data
         self.line.set_ydata(y)
         self.ax.set_ylim( min(y)-3,max(y)+3)
+
+        #refresh ui
         self.hourly_fig.canvas.draw()
         self.hourly_fig.canvas.flush_events()
 
@@ -327,9 +352,11 @@ class View:
         self.overview_canvas.coords(self.overview_info_text, self.WIDTH//2,self.HEIGHT*0.75)
         self.overview_canvas.coords(self.last_updated_lbl, self.WIDTH//2,self.HEIGHT*0.9)
 
-    def RadioBtnSelected(self):
+    def Daily_RadioBtnSelected(self):
         print(json.dumps(self.i.get()))
         self.update_daily_detail()
+
+
 
     def load_bg(self):
         img_height = 300

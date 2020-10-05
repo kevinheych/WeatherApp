@@ -19,14 +19,15 @@ except:
 class Map():
     
     def __init__(self):
-        self.WEATHER_KEY = _KEY
+         
         self.layer = 'clouds_new'
 
 
     def map(self, figure, layer):
         
-        url = 'https://tile.openweathermap.org/map/' + layer +'/{z}/{x}/{y}.png?appid='+ self.WEATHER_KEY   
+        url = 'https://tile.openweathermap.org/map/' + layer +'/{z}/{x}/{y}.png?appid='+ _KEY  
 
+        print(url)
         # Create a Stamen Terrain instance.
         weather_tile = cimgt.GoogleTiles(url=url)
     
@@ -44,8 +45,22 @@ class Map():
         ax.coastlines(resolution='50m', color='black', linewidth=1)
         
         plt.title('Radar')
+       
      
         return ax
+
+    def update(self, axe, layer):
+        axe.clear()
+        
+        url = 'https://tile.openweathermap.org/map/' + layer +'/{z}/{x}/{y}.png?appid='+ _KEY   
+
+        print(url)
+        # Create a Stamen Terrain instance.
+        weather_tile = cimgt.GoogleTiles(url=url)
+    
+        axe.add_image(weather_tile, 1)
+        
+        return axe
 
 
 if __name__ == '__main__':

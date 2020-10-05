@@ -9,6 +9,7 @@ except:
 
 
 
+
 class Model:
     def __init__(self):
         self.WEATHER_KEY = _KEY
