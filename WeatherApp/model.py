@@ -2,13 +2,17 @@ import requests
 import json
 from geopy.geocoders import Nominatim
 
-
+try:
+    from key import _KEY
+except:
+    _KEY = ''
 
 
 
 class Model:
     def __init__(self):
-         pass
+        self.WEATHER_KEY = _KEY
+         
        
 
     def get_location(self,location):
@@ -17,7 +21,7 @@ class Model:
         return loc
         
     def get_weather_c(self, location):
-        weather_key = "7350831d27d44e16e6a543a8f49dbf81"
+        weather_key = self.WEATHER_KEY
        
         url = 'https://api.openweathermap.org/data/2.5/onecall'
         params = {'appid':  weather_key, 
@@ -30,7 +34,7 @@ class Model:
         return response.json()
 
     def get_weather_f(self, location):
-        weather_key = "7350831d27d44e16e6a543a8f49dbf81"
+        weather_key = self.WEATHER_KEY
        
         url = 'https://api.openweathermap.org/data/2.5/onecall'
         params = {'appid':  weather_key, 

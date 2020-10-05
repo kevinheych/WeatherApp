@@ -10,17 +10,22 @@ import cartopy.feature as cfeature
 from pyowm import OWM
 from pyowm.tiles.enums import MapLayerEnum
 
- 
+try:
+    from key import _KEY
+except:
+    _KEY = ''
  
 
 class Map():
+    
     def __init__(self):
-         pass
+        self.WEATHER_KEY = _KEY
+        self.layer = 'clouds_new'
 
 
-    def map(self, figure):
+    def map(self, figure, layer):
         
-        url = 'https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=7350831d27d44e16e6a543a8f49dbf81'   
+        url = 'https://tile.openweathermap.org/map/' + layer +'/{z}/{x}/{y}.png?appid='+ self.WEATHER_KEY   
 
         # Create a Stamen Terrain instance.
         weather_tile = cimgt.GoogleTiles(url=url)
@@ -39,7 +44,7 @@ class Map():
         ax.coastlines(resolution='50m', color='black', linewidth=1)
         
         plt.title('Radar')
-         
+     
         return ax
 
 
@@ -47,5 +52,5 @@ if __name__ == '__main__':
 
     fig = plt.figure()
     map = Map()
-    map.map(fig)
+    map.map(fig, "clouds_new")
     

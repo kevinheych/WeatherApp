@@ -96,7 +96,7 @@ class View:
         self.map_fig = plt.Figure()
         
 
-        self.map_ax = self.map.map(self.map_fig)
+        self.map_ax = self.map.map(self.map_fig,"clouds_new")
         self.map_fig  = FigureCanvasTkAgg(self.map_fig, self.map_frame)
         self.map_fig.get_tk_widget().pack(fill = tk.X)
         self.map_fig.draw()
