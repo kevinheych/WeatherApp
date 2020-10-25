@@ -1,7 +1,9 @@
 import requests
 import json
+ 
 from geopy.geocoders import Nominatim
-
+import geocoder
+ 
 try:
     from key import _KEY
 except:
@@ -15,6 +17,14 @@ class Model:
         self.WEATHER_KEY = _KEY
          
        
+
+    def get_currentLoc(self):
+        g = geocoder.ip('me')
+        print(g.latlng)
+        geolocator = Nominatim(user_agent='myapplication')
+        loc = geolocator.geocode(g.address)
+        return loc
+
 
     def get_location(self,location):
         geolocator = Nominatim(user_agent='myapplication')

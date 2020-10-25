@@ -6,6 +6,8 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 import datetime
+from tkinter.ttk import Progressbar
+ 
 class Controller:
 
     location = 0
@@ -13,36 +15,49 @@ class Controller:
     def __init__(self, parent):
         
         self.parent = parent
+         
         self.model = Model()
         self.view = View(parent)
         
-        self.set_location("Preston 3072")
+        self.location = self.model.get_currentLoc()
         self.update_weather_c(self.location)
+        self.view.location = self.location
         
         self.view.setup()
         self.update_views(self.current)
 
+        #attach button commands 
         self.view.search_btn.config(command = self.get_location)
+        self.view.refresh_btn.config(command = self.refresh_ui)
         self.view.c_button.config(command = self.change_metric)
 
+   
+
+    def refresh_ui(self):
+        self.update_weather_c(self.location)
+        self.update_views(self.current)
   
     def get_location(self):
         location = self.view.search_box.get()
+        self.view.search_box.delete(0, 'end')
         self.set_location(location)
+        self.view.location = self.location
+        self.view.map_RadioBtnSelected()
         self.update_weather_c(self.location)
         self.update_views(self.current)
+   
 
     def change_metric(self):
         
         btn_text = self.view.c_button['text']
         if btn_text == 'C':
             self.update_weather_f(self.location)
-            self.view.setup()
+            #
             self.update_views(self.current)
             self.view.c_button.config(text = "F")
         elif btn_text == 'F':
             self.update_weather_c(self.location)
-            self.view.setup()
+         
             self.update_views(self.current)
             self.view.c_button.config(text = "C")
         
@@ -87,8 +102,9 @@ class Controller:
 
         overview_text = "Feels like "+ str(feels_like) + "    Pressure "+str(pressure) + "    Humidity "+str(humidity) + "\nDew Point "+ str(dew_point) + "    Wind speed "+str(wind_speed) + "    Visibility "+str(visibility)
        
-         
+        #reattach button commands 
         self.view.c_button.config(command = self.change_metric)
+        self.view.refresh_btn.config(command = self.refresh_ui)
         self.view.search_btn.config(command = self.get_location)
         #update overview 
         self.view.open_image(icon_name)
@@ -97,6 +113,22 @@ class Controller:
         self.view.overview_canvas.itemconfig(self.view.weather_text_lbl, text= weather_text)
         self.view.overview_canvas.itemconfig(self.view.overview_info_text, text= overview_text)
         self.view.overview_canvas.itemconfig(self.view.last_updated_lbl, text= "Last updated "+ str(current_time.strftime("%I:%M %p, %a %d ")))
+
+        #remove and recreate 48hrs, daily, dailydetails
+        self.view.hourly_frame.destroy()
+        self.view.daily_scroll_frame.destroy()
+        self.view.daily_detail_frame.destroy()
+
+        self.view.next_48hrs()
+        self.view.daily_section()
+        self.view.load_daily_detail()
+
+
+
+
+        #update map
+        self.view.loc_label.config(text=split[0]+","+split[1])
+
 
 
 
@@ -110,15 +142,17 @@ if __name__ == "__main__":
     # Create an instance of Tk. This is popularly called 'root' But let's
     # call it mainwin (the 'main window' of the application. )
     mainwin = tk.Tk()
-    WIDTH = 700
-    HEIGHT = 1000
+    WIDTH = 1000
+    HEIGHT = 700
     mainwin.geometry("%sx%s" % (WIDTH, HEIGHT))
-    #mainwin.resizable(0, 0)
-    background_label = tk.Label(mainwin)
+  
     mainwin.title("Weather Analysis App")
     
-     
-    app = Controller(mainwin)
+    mainwin.attributes('-alpha', 0.0) 
     
- 
+
+   
+    app = Controller(mainwin)
+    mainwin.after(0, mainwin.attributes, "-alpha", 1.0)
+  
     mainwin.mainloop()        
