@@ -1,13 +1,8 @@
 
- 
 from controller import Controller
 
 import tkinter as tk
- 
-from tkinter import ttk
-from PIL import Image, ImageTk
-import datetime
-from tkinter.ttk import Progressbar
+
 
 
 if __name__ == "__main__":

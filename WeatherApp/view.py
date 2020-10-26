@@ -15,6 +15,8 @@ from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
 NavigationToolbar2Tk) 
 
 from scipy import interpolate
+
+
 class ScrollableFrame(tk.Frame):
     def __init__(self, parent):
 
@@ -62,15 +64,12 @@ class View:
     background_image = 0
 
     def __init__(self,parent):
-      
- 
+        self.container = parent
+        #initial values 
         self.i = tk.IntVar()
         self.i.set(0)
         self.layer_i = tk.StringVar()
         self.layer_i.set("temp_new")
-        
-
-        self.container = parent
 
         #class variables
         self.WIDTH = parent.winfo_width()
@@ -102,7 +101,7 @@ class View:
 
 
  
-## GUI 
+#### GUI ####
 
 
     def tab_bar(self):  
@@ -146,8 +145,8 @@ class View:
         ]
 
         self.layer_btn_frame = tk.Frame(self.map_tab, bg= 'white')
-
         self.layer_btn_frame.pack(side=tk.BOTTOM, padx = 20, pady = 10)
+        #populate radio buttons using loop
         for text, layer in LAYERS:
             self.btn = tk.Radiobutton(self.layer_btn_frame, text= text, variable=self.layer_i,value=layer, command = self.map_RadioBtnSelected, bg= 'white') 
             self.btn.pack(side=tk.LEFT)
@@ -252,6 +251,7 @@ class View:
                             fill = 'green', font=(None, 8), 
                             anchor=tk.CENTER)
 
+        #assign callback to resize this section when window is changed
         self.overview_canvas.bind("<Configure>", self.resize_window)
         self.overview_canvas.addtag_all("all")
 
@@ -608,8 +608,7 @@ class View:
     def resize_window(self, event):
         self.WIDTH = event.width
         self.HEIGHT = event.height
-        print("resize window call")
-        
+    
         self.overview_canvas.coords(self.overview_bg, self.WIDTH/2,self.HEIGHT/2)
         self.overview_canvas.coords(self.location_text, self.WIDTH//2,self.HEIGHT *0.12)
         self.overview_canvas.coords(self.weather_icon_pic, self.WIDTH//2-150,self.HEIGHT*0.25)

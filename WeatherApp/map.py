@@ -65,13 +65,7 @@ class Map():
         text = AnchoredText( "Source: OpenWeatherMap 1.0",
                             loc=4, prop={'size': 8}, frameon=True)
         ax.add_artist(text)
-        # Use the cartopy interface to create a matplotlib transform object
-        # for the Geodetic coordinate system. We will use this along with
-        # matplotlib's offset_copy function to define a coordinate system which
-        # translates the text by 25 pixels to the left.
-        
-
-        # Add text 25 pixels to the left of the volcano.
+      
         ax.plot(145.01667, -37.75,  markersize=10, marker='o', color='red') 
          
             

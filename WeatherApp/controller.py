@@ -6,16 +6,14 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 import datetime
-from tkinter.ttk import Progressbar
+
  
 class Controller:
 
     location = 0
 
     def __init__(self, parent):
-        
-        self.parent = parent
-         
+       
         self.model = Model()
         self.view = View(parent)
         
@@ -139,8 +137,7 @@ class Controller:
 
 
 if __name__ == "__main__":
-    # Create an instance of Tk. This is popularly called 'root' But let's
-    # call it mainwin (the 'main window' of the application. )
+ 
     mainwin = tk.Tk()
     WIDTH = 1000
     HEIGHT = 700
