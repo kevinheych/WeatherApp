@@ -1,2 +1,5 @@
 # WeatherApp
-Weather App for ICT40010 Unit
+
+# Python Tkinter GUI desktop application
+# Data acquired from OpenWeatherMap
+# Requires API key
