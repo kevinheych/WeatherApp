@@ -1,5 +1,5 @@
 # WeatherApp
 
-# Python Tkinter GUI desktop application
-# Data acquired from OpenWeatherMap
-# Requires API key
+* Python Tkinter GUI desktop application
+* Data acquired from OpenWeatherMap
+* Requires API key
